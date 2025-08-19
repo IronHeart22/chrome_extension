@@ -2,7 +2,7 @@
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     background-color: #f8fafc;
-    width: 800px; /* Set a fixed width for the popup */
+    width: 800px;
     margin: 0;
     padding: 0;
     color: #334155;
@@ -37,9 +37,8 @@ header p {
 }
 
 #scan-button,
-/* FIX: Changed ID to 'match-button' */
 #match-button {
-    flex-grow: 1; /* Make buttons share space equally */
+    flex-grow: 1;
     background-color: #2563eb;
     color: white;
     font-weight: 700;
@@ -51,24 +50,20 @@ header p {
 }
 
 #scan-button:hover,
-/* FIX: Changed ID to 'match-button' */
 #match-button:hover:not(:disabled) {
     background-color: #1d4ed8;
 }
 
 #scan-button:disabled,
-/* FIX: Changed ID to 'match-button' */
 #match-button:disabled {
     background-color: #94a3b8;
     cursor: not-allowed;
 }
 
-/* FIX: Changed ID to 'match-button' */
 #match-button {
-    background-color: #16a34a; /* Green color for the match button */
+    background-color: #16a34a;
 }
 
-/* FIX: Changed ID to 'match-button' */
 #match-button:hover:not(:disabled) {
     background-color: #15803d;
 }
@@ -88,7 +83,7 @@ header p {
 
 /* Container for the table to enable scrolling */
 .table-container {
-    overflow-x: auto; /* This enables horizontal scrolling */
+    overflow-x: auto;
     border-radius: 0.5rem;
     box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     background-color: #ffffff;
@@ -97,7 +92,7 @@ header p {
 /* Table Styles */
 .results-table {
     width: 100%;
-    min-width: 750px; /* Force scrollbar if content is wide */
+    min-width: 750px;
     border-collapse: collapse;
     font-size: 0.875rem;
     text-align: left;
@@ -114,7 +109,7 @@ header p {
 .results-table th,
 .results-table td {
     padding: 0.75rem 1rem;
-    white-space: nowrap; /* Prevent text from wrapping */
+    white-space: nowrap;
 }
 
 .results-table tbody tr {
