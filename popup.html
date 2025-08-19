@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Matcher</title>
+    <!-- Link to the local stylesheet -->
+    <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Invoice & Payment Matcher</h1>
+            <p>Scan the page, then find matches between invoices and payments.</p>
+        </header>
+
+        <main>
+            <!-- Action Buttons -->
+            <div class="button-group">
+                <button id="scan-button">1. Scan Page</button>
+                <button id="match-button" disabled>2. Find Matches</button>
+            </div>
+
+            <!-- This area will be populated with tables by the script -->
+            <div id="results">
+                <div class="info-message">Results will appear here.</div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Link to the JavaScript logic -->
+    <script src="./popup.js"></script>
+</body>
+</html>
