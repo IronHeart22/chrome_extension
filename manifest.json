@@ -4,8 +4,9 @@
 "version": "3.0.0",
 "description": "Shows overdue invoices (with age), unused payments, and suggests matches.",
 "permissions": [
-"activeTab",
-"scripting"
+  "activeTab",
+  "scripting",
+  "downloads"
 ],
 "background": {
 "service_worker": "background.js"

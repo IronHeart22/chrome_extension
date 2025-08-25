@@ -113,11 +113,130 @@ if (typeof window.invoiceMatcherInjected === 'undefined') {
     };
 
     /**
+     * Attempts to find the customer name from various possible locations on the page
+     */
+    const getCustomerName = () => {
+        let customerName = null;
+
+        // Strategy 0: Look for overflow div in header section (common in modern UIs)
+        const headerOverflow = document.querySelector('.details-actions-header .over-flow, .header-title .over-flow, h3 .over-flow');
+        if (headerOverflow) {
+            const text = headerOverflow.innerText.trim();
+            // Filter out generic labels and check if it looks like a customer name
+            if (text && text.length > 0 && 
+                !/^(Overview|Comments|Transactions|Mails|Statement|Invoices|Payments)$/i.test(text)) {
+                return text;
+            }
+        }
+
+        // Strategy 1: Look for elements with specific data attributes
+        const customerDataElement = document.querySelector('[data-test-title*="customer"], [data-test*="customer_name"], [data-customer-name]');
+        if (customerDataElement) {
+            customerName = customerDataElement.innerText.trim();
+            if (customerName) return customerName;
+        }
+
+        // Strategy 2: Look for elements with customer-related IDs or classes
+        const customerIdSelectors = [
+            '#customer_name',
+            '#customerName',
+            '#customer-name',
+            '.customer-name',
+            '.customer_name',
+            '.customerName',
+            '[class*="customer-name"]',
+            '[class*="customer_name"]',
+            '[id*="customer-name"]',
+            '[id*="customer_name"]'
+        ];
+
+        for (const selector of customerIdSelectors) {
+            const element = document.querySelector(selector);
+            if (element) {
+                customerName = element.innerText.trim();
+                if (customerName && customerName.length > 0) return customerName;
+            }
+        }
+
+        // Strategy 3: Look in page headings (h1, h2, h3)
+        const headings = document.querySelectorAll('h1, h2, h3');
+        for (const heading of headings) {
+            const text = heading.innerText.trim();
+            // Check if heading contains customer-related keywords
+            if (text && (
+                /customer:|client:|bill to:|invoice to:/i.test(text) ||
+                heading.className.includes('customer') ||
+                heading.id.includes('customer')
+            )) {
+                // Extract the name part after the label
+                const nameMatch = text.match(/(?:customer:|client:|bill to:|invoice to:)\s*(.+)/i);
+                if (nameMatch) {
+                    return nameMatch[1].trim();
+                }
+                // If no label, but contains customer class/id, return the whole text
+                if (heading.className.includes('customer') || heading.id.includes('customer')) {
+                    return text;
+                }
+            }
+        }
+
+        // Strategy 4: Look for customer info in a card or section header
+        const customerSections = document.querySelectorAll('[class*="customer-info"], [class*="customer-details"], [class*="client-info"]');
+        for (const section of customerSections) {
+            // Look for the first text that seems like a name (not a label)
+            const textNodes = section.querySelectorAll('*');
+            for (const node of textNodes) {
+                const text = node.innerText?.trim();
+                if (text && text.length > 0 && !text.includes(':') && !/invoice|payment|balance|date|status/i.test(text)) {
+                    return text;
+                }
+            }
+        }
+
+        // Strategy 5: Look in breadcrumbs or navigation
+        const breadcrumbs = document.querySelectorAll('.breadcrumb, .breadcrumbs, nav ol li, nav ul li');
+        for (const crumb of breadcrumbs) {
+            const text = crumb.innerText?.trim();
+            if (text && text.length > 0 && !/home|dashboard|invoices|payments|customers/i.test(text)) {
+                // Might be a customer name in navigation
+                return text;
+            }
+        }
+
+        // Strategy 6: Look for a label followed by customer name
+        const labels = document.querySelectorAll('label, span, div');
+        for (const label of labels) {
+            const text = label.innerText?.trim().toLowerCase();
+            if (text === 'customer' || text === 'client' || text === 'customer:' || text === 'client:') {
+                // Check next sibling or next element
+                const nextElement = label.nextElementSibling || label.parentElement?.querySelector('span, div, p');
+                if (nextElement) {
+                    const name = nextElement.innerText?.trim();
+                    if (name && name.length > 0) return name;
+                }
+            }
+        }
+
+        // Strategy 7: Check page title or meta tags
+        const pageTitle = document.title;
+        const titleMatch = pageTitle.match(/(.+?)\s*[-–|]/);
+        if (titleMatch && titleMatch[1] && !/invoice|payment|dashboard/i.test(titleMatch[1])) {
+            customerName = titleMatch[1].trim();
+            if (customerName) return customerName;
+        }
+
+        return customerName || 'Unknown Customer';
+    };
+
+    /**
      * Scrapes invoice and payment data from the page.
      */
     const scrapeDataFromPage = () => {
         const invoices = [];
         const payments = [];
+        
+        // Get customer name
+        const customerName = getCustomerName();
 
         // --- Scrape Invoices ---
         const invoiceRows = document.querySelectorAll('#invoice tbody tr.show_hover');
@@ -220,13 +339,18 @@ if (typeof window.invoiceMatcherInjected === 'undefined') {
             }
         });
 
-        return { invoices, payments };
+        return { 
+            customerName,
+            invoices, 
+            payments 
+        };
     };
 
     // Listen for either action name (makes popup<->content more robust)
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request && (request.action === "scrape_data" || request.action === "get_page_data")) {
             const data = scrapeDataFromPage();
+            console.log('Scraped data with customer name:', data.customerName);
             sendResponse(data);
         }
         return true;
